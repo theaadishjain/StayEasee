@@ -15,6 +15,7 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
+const { csrfProtection, generateToken } = require("./utils/csrf.js");
 
 const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
@@ -46,10 +47,10 @@ const store = MongoStore.create({
   crypto: {
     secret: process.env.SECRET,
   },
-  touchAfter: 24 * 2600,
+  touchAfter: 24 * 3600,
 });
 
-store.on("error", () => {
+store.on("error", (err) => {
   console.log("ERROR in MONGO SESSION STORE", err);
 });
 
@@ -59,7 +60,6 @@ const sessionOptions = {
   resave: false,
   saveUninitialized: true,
   cookie: {
-    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
   },
@@ -76,11 +76,14 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 app.use((req, res, next) => {
+  res.locals.csrfToken = generateToken(req);
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   res.locals.currUser = req.user;
   next();
 });
+
+app.use(csrfProtection);
 
 app.get("/", (req, res) => {
   res.redirect("/listings");
@@ -95,10 +98,21 @@ app.all("*", (req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
+  if (err.name === "CastError") {
+    err = new ExpressError(404, "Page Not Found!");
+  } else if (err.name === "MulterError") {
+    let message =
+      err.code === "LIMIT_FILE_SIZE"
+        ? "Image must be smaller than 5 MB!"
+        : err.message;
+    err = new ExpressError(400, message);
+  }
   let { statusCode = 500, message = "Some Error Occured!" } = err;
   res.status(statusCode).render("./listings/error.ejs", { message });
 });
 
-app.listen(8080, () => {
-  console.log("Listening on port 8080");
+const port = process.env.PORT || 8080;
+
+app.listen(port, () => {
+  console.log(`Listening on port ${port}`);
 });

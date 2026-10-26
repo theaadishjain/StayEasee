@@ -6,6 +6,7 @@
                 <div class="new-edit-form-inp">
                     <form action="/listings/<%= listing._id%>?_method=PUT" method="post" novalidate
                         class="needs-validation" enctype="multipart/form-data">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <h3>Edit this Listing</h3>
                         <div class="mb-3">
                             <label for="title" class="form-label">Title</label>
@@ -75,7 +76,7 @@
                                     </div>
                                     <div class="form-check mb-3">
                                         <input class="form-check-input" type="radio" id="ski-in-out"
-                                            name="listing[category]" value="Ski-in/out" required
+                                            name="listing[category]" value="Ski-in-out" required
                                             <%=listing.category==='Ski-in-out' ? 'checked' : '' %>>
                                         <label class="form-check-label d-flex align-items-center" for="ski-in-out">
                                             <i class="fa-solid fa-person-snowboarding me-2"></i> Ski-in/out

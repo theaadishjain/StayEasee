@@ -1,22 +1,30 @@
-mapboxgl.accessToken = mapToken;
-const map = new mapboxgl.Map({
-  container: "map",
-  style: "mapbox://styles/mapbox/streets-v12",
-  center: listing.geometry.coordinates,
-  zoom: 9,
-});
+if (listing.geometry && listing.geometry.coordinates) {
+  mapboxgl.accessToken = mapToken;
+  const map = new mapboxgl.Map({
+    container: "map",
+    style: "mapbox://styles/mapbox/streets-v12",
+    center: listing.geometry.coordinates,
+    zoom: 9,
+  });
 
-const marker = new mapboxgl.Marker({ color: "red" })
-  .setLngLat(listing.geometry.coordinates)
-  .setPopup(
-    new mapboxgl.Popup({ offset: 25 }).setHTML(
-      `<div class="map-click">
-      <h4><b>${listing.title}</b></h4> 
-      <p>Exact loaction will be provided after booking.</p>
-      </div>`
-    )
-  )
-  .addTo(map);
+  const popupContent = document.createElement("div");
+  popupContent.className = "map-click";
+  const popupTitle = document.createElement("h4");
+  const popupTitleText = document.createElement("b");
+  popupTitleText.textContent = listing.title;
+  popupTitle.appendChild(popupTitleText);
+  const popupText = document.createElement("p");
+  popupText.textContent = "Exact location will be provided after booking.";
+  popupContent.append(popupTitle, popupText);
 
-map.addControl(new mapboxgl.ScaleControl());
-map.addControl(new mapboxgl.NavigationControl());
+  const marker = new mapboxgl.Marker({ color: "red" })
+    .setLngLat(listing.geometry.coordinates)
+    .setPopup(new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent))
+    .addTo(map);
+
+  map.addControl(new mapboxgl.ScaleControl());
+  map.addControl(new mapboxgl.NavigationControl());
+} else {
+  document.getElementById("map").textContent =
+    "Map is not available for this listing.";
+}

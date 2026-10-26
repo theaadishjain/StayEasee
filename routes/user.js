@@ -22,6 +22,6 @@ router
     userController.login
   );
 
-router.get("/logout", userController.logout);
+router.post("/logout", userController.logout);
 
 module.exports = router;

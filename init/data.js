@@ -373,7 +373,7 @@ const sampleListings = [
       $oid: "66567b03fda820235197b582",
     },
     geometry: {
-      coordinates: [30.536625, 38.820522],
+      coordinates: [34.833332, -2.333333],
       type: "Point",
     },
     category: "Woodlands",
@@ -450,7 +450,7 @@ const sampleListings = [
     },
     geometry: {
       type: "Point",
-      coordinates: [120.782905, 23.831716],
+      coordinates: [178.065032, -17.713371],
     },
     category: "Boat",
     __v: 5,
@@ -944,7 +944,7 @@ const sampleListings = [
     },
     geometry: {
       type: "Point",
-      coordinates: [139.1485991, 35.76478424],
+      coordinates: [139.691711, 35.689487],
     },
     category: "Trending",
     __v: 4,
@@ -1019,7 +1019,7 @@ const sampleListings = [
       $oid: "66567b03fda820235197b582",
     },
     geometry: {
-      coordinates: [100.58672, 13.772545],
+      coordinates: [73.220680, 3.202778],
       type: "Point",
     },
     category: "Amazing-Pools",

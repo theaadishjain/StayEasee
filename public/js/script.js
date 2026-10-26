@@ -18,9 +18,9 @@
 })();
 
 let taxSwitch = document.getElementById("flexSwitchCheckDefault");
-taxSwitch.addEventListener("click", () => {
+taxSwitch?.addEventListener("click", () => {
   let taxInfo = document.getElementsByClassName("tax-info");
-  for (info of taxInfo) {
+  for (let info of taxInfo) {
     if (info.style.display != "inline") {
       info.style.display = "inline";
     } else {
@@ -33,9 +33,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const leftBtn = document.querySelector(".left-btn");
   const rightBtn = document.querySelector(".right-btn");
   const filtersContainer = document.getElementById("filters-container");
-  const filters = document.getElementById("filters");
+  const filter = document.querySelector(".filter");
+  if (!leftBtn || !rightBtn || !filtersContainer || !filter) return;
 
-  const filterWidth = document.querySelector(".filter").offsetWidth + 32;
+  const filterWidth = filter.offsetWidth + 32;
 
   leftBtn.addEventListener("click", function () {
     filtersContainer.scrollLeft -= filterWidth;
@@ -48,6 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("DOMContentLoaded", function () {
   const container = document.getElementById("filters-container");
+  if (!container) return;
 
   let startX;
   let scrollLeft;

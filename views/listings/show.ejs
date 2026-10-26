@@ -1,7 +1,7 @@
 <% layout("/layouts/boilerplate") %>
     <script>
-        const mapToken = "<%= process.env.MAP_TOKEN %>";
-        const listing = <%- JSON.stringify(listing) %>;
+        const mapToken = <%- JSON.stringify(process.env.MAP_TOKEN || "") %>;
+        const listing = <%- JSON.stringify(listing).replace(/</g, "\\u003c") %>;
     </script>
 
     <body>
@@ -17,7 +17,7 @@
                     <div class="listing-card-body mt-3">
                         <p class="listing-card-text">
                             <b>Hosted By: </b><i>
-                                <%= listing.owner.username %>
+                                <%= listing.owner ? listing.owner.username : "Unknown host" %>
                             </i>
                         </p>
                         <p class="listing-card-text">
@@ -47,11 +47,12 @@
                         <button class="btn btn-success reserve-btn">Reserve</button>
                     </form>
                 </div>
-                <% if(currUser && currUser._id.equals(listing.owner._id)){ %>
+                <% if(currUser && listing.owner && currUser._id.equals(listing.owner._id)){ %>
                     <div class="show-btns d-flex flex-column flex-md-row justify-content-center gap-2 gap-md-3 mt-3">
                         <a href="/listings/<%= listing._id %>/edit" class="btn btn-danger mb-2 mb-md-0">Edit this
                             Listing</a>
                         <form action="/listings/<%= listing._id %>?_method=DELETE" method="post">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                             <button type="submit" class="btn btn-dark">Delete this Listing</button>
                         </form>
                     </div>
@@ -65,6 +66,7 @@
                                 <h4>Leave a Review</h4>
                                 <form class="mt-3 needs-validation" novalidate
                                     action="/listings/<%= listing._id %>/reviews" method="POST">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <div class="mt-3">
                                         <label class="form-label" for="rating">Rating</label>
                                         <fieldset class="starability-slot">
@@ -113,7 +115,7 @@
                                                                     <i class="fa-solid fa-circle-user fa-lg"
                                                                         style="color: #ff0000;">&nbsp;</i>
                                                                     <i>
-                                                                        <%= review.author.username %>
+                                                                        <%= review.author ? review.author.username : "Deleted user" %>
                                                                     </i>
                                                                 </h5>
                                                                 <p class="starability-result card-text"
@@ -122,11 +124,12 @@
                                                                     <%= review.comment %>
                                                                 </p>
                                                             </div>
-                                                            <% if(currUser && currUser._id.equals(review.author._id)){
+                                                            <% if(currUser && review.author && currUser._id.equals(review.author._id)){
                                                                 %>
                                                                 <form
                                                                     action="/listings/<%=listing._id%>/reviews/<%=review._id%>?_method=DELETE"
                                                                     method="POST">
+                                                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                                                     <button
                                                                         class="btn btn-sm btn-danger mt-2">Delete</button>
                                                                 </form>

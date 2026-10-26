@@ -3,6 +3,16 @@ const mbxGeocoding = require("@mapbox/mapbox-sdk/services/geocoding");
 const mapToken = process.env.MAP_TOKEN;
 const geoCodingClient = mbxGeocoding({ accessToken: mapToken });
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const geocode = async (query) => {
+  let response = await geoCodingClient
+    .forwardGeocode({ query, limit: 1 })
+    .send();
+  let feature = response.body.features[0];
+  return feature ? feature.geometry : null;
+};
+
 module.exports.index = async (req, res) => {
   let allListings = await Listing.find();
   res.render("./listings/index.ejs", { allListings });
@@ -19,18 +29,23 @@ module.exports.showListing = async (req, res) => {
     .populate("owner");
   if (!listing) {
     req.flash("error", "Listing you requested for does not exist!");
-    res.redirect("/listings");
+    return res.redirect("/listings");
   }
   res.render("listings/show.ejs", { listing });
 };
 
 module.exports.createListing = async (req, res, next) => {
-  let response = await geoCodingClient
-    .forwardGeocode({
-      query: req.body.listing.location,
-      limit: 1,
-    })
-    .send();
+  if (!req.file) {
+    req.flash("error", "Please upload an image for the listing!");
+    return res.redirect("/listings/new");
+  }
+  let geometry = await geocode(
+    `${req.body.listing.location}, ${req.body.listing.country}`
+  );
+  if (!geometry) {
+    req.flash("error", "Could not find that location, please check it!");
+    return res.redirect("/listings/new");
+  }
 
   let url = req.file.path;
   let filename = req.file.filename;
@@ -38,7 +53,7 @@ module.exports.createListing = async (req, res, next) => {
   const newListing = new Listing(req.body.listing);
   newListing.owner = req.user._id;
   newListing.image = { filename, url };
-  newListing.geometry = response.body.features[0].geometry;
+  newListing.geometry = geometry;
   await newListing.save();
   req.flash("success", "New listing created!");
   res.redirect("/listings");
@@ -49,23 +64,26 @@ module.exports.renderEditForm = async (req, res) => {
   let listing = await Listing.findById(id);
   if (!listing) {
     req.flash("error", "Listing you trying to edit for does not exist!");
-    res.redirect("/listings");
+    return res.redirect("/listings");
   }
-  imageUrl = listing.image.url;
-  imageUrl = imageUrl.replace("/upload", "/upload/w_250,h_160");
+  let imageUrl = (listing.image && listing.image.url) || "";
+  if (imageUrl.includes("res.cloudinary.com")) {
+    imageUrl = imageUrl.replace("/upload", "/upload/w_250,h_160");
+  }
   res.render("listings/edit.ejs", { listing, imageUrl });
 };
 
 module.exports.updateListing = async (req, res, next) => {
   let { id } = req.params;
-  let response = await geoCodingClient
-    .forwardGeocode({
-      query: ` ${req.body.listing.location},${req.body.listing.country}`,
-      limit: 1,
-    })
-    .send();
+  let geometry = await geocode(
+    `${req.body.listing.location}, ${req.body.listing.country}`
+  );
+  if (!geometry) {
+    req.flash("error", "Could not find that location, please check it!");
+    return res.redirect(`/listings/${id}/edit`);
+  }
 
-  req.body.listing.geometry = response.body.features[0].geometry;
+  req.body.listing.geometry = geometry;
   let updatedListing = await Listing.findByIdAndUpdate(id, {
     ...req.body.listing,
   });
@@ -93,23 +111,13 @@ module.exports.filter = async (req, res, next) => {
 };
 
 module.exports.search = async (req, res) => {
-  if (input == "" || input == " " || !input || input == undefined) {
+  let input = (req.query.q || "").trim().replace(/\s+/g, " ");
+  if (!input) {
     req.flash("error", "Please enter search query!");
-    res.redirect("/listings");
+    return res.redirect("/listings");
   }
 
-  let input = req.query.q.trim().replace(/\s+/g, " ");
-  let data = input.split("");
-  let element = "";
-  let flag = false;
-  for (let index = 0; index < data.length; index++) {
-    if (index == 0 || flag) {
-      element = element + data[index].toUpperCase();
-    } else {
-      element = element + data[index].toLowerCase();
-    }
-    flag = data[index] == " ";
-  }
+  let element = escapeRegex(input);
 
   let allListings = await Listing.find({
     title: { $regex: element, $options: "i" },
@@ -152,15 +160,15 @@ module.exports.search = async (req, res) => {
     }
   }
 
-  const intValue = parseInt(element, 10);
+  const intValue = parseInt(input, 10);
   const intDec = Number.isInteger(intValue);
 
   if (allListings.length == 0 && intDec) {
-    allListings = await Listing.find({ price: { $lte: element } }).sort({
+    allListings = await Listing.find({ price: { $lte: intValue } }).sort({
       price: 1,
     });
     if (allListings.length != 0) {
-      res.locals.success = `Listings searched by price less than Rs ${element}!`;
+      res.locals.success = `Listings searched by price less than Rs ${intValue}!`;
       res.render("listings/index.ejs", { allListings });
       return;
     }

@@ -2,7 +2,7 @@
     <div class="container-fluid">
         <a class="navbar-brand" href="/listings"><i class="fa-regular fa-compass"></i></a>
         <div class="navbar-nav web-title">
-            <a class="nav-link" id="web-title" href="/listings"><b>WanderLust</b></a>
+            <a class="nav-link" id="web-title" href="/listings"><b>StayEase</b></a>
         </div>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
             <span class="navbar-toggler-icon"></span>
@@ -34,9 +34,12 @@
                                     <h6 class="mt-1 nav-link"><b><i class="fa-solid fa-user"></i>
                                             &nbsp; &nbsp;<%= currUser.username%>
                                         </b></h6>
-                                    <a class="nav-link" href="/logout"><b><i
-                                                class="fa-solid fa-arrow-right-from-bracket"></i>&nbsp; &nbsp;Log
-                                            out</b></a>
+                                    <form action="/logout" method="post" class="d-inline">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <button type="submit" class="nav-link border-0 bg-transparent"><b><i
+                                                    class="fa-solid fa-arrow-right-from-bracket"></i>&nbsp; &nbsp;Log
+                                                out</b></button>
+                                    </form>
                                     <% } %>
                                         <hr />
                                         <a class="nav-link" href="/listings/new"><strong><i
@@ -55,8 +58,11 @@
                                 <h6 class="mt-1 nav-link"><b><i class="fa-solid fa-user"></i>
                                         &nbsp; &nbsp;<%= currUser.username%>
                                     </b></h6>
-                                <a class="nav-link" href="/logout"><i
-                                        class="fa-solid fa-arrow-right-from-bracket"></i>&nbsp;<b>Log out</b></a>
+                                <form action="/logout" method="post" class="d-inline">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <button type="submit" class="nav-link border-0 bg-transparent"><i
+                                            class="fa-solid fa-arrow-right-from-bracket"></i>&nbsp;<b>Log out</b></button>
+                                </form>
                                 <% } %>
                                     <a class="nav-link" href="/listings/new"><i
                                             class="fa-solid fa-circle-plus"></i>&nbsp; &nbsp;<strong>Airbnb your
